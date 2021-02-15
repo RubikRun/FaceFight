@@ -2,6 +2,9 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "Player/Player.h"
+#include "Enemy/Enemy.h"
+
 /**
  * A class for easily creating and running the Game.
  */
@@ -37,4 +40,16 @@ class Game
 
     /// The window where the game is rendered
     sf::RenderWindow _window;
+
+    /// Object representing the player entity
+    Player _player;
+
+    /// Object representing the enemy entity
+    Enemy _enemy;
+
+    /// Indicates whether the left mouse button is currently pressed
+    bool _mouseLeftIsPressed;
+
+    /// Timer for how many frames until the enemy can hit the player again
+    int _enemyHitTimer;
 };
