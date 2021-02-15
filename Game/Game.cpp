@@ -42,7 +42,7 @@ Game::Game()
     // Hide the mouse cursor
     _window.setMouseCursorVisible(false);
 
-    _enemy.SetPosition({200.f, 200.f});
+    _enemy.SetPosition({SCREEN_WIDTH - 400.f, 600.f});
 }
 
 void Game::Run()
@@ -88,9 +88,11 @@ void Game::Update()
         (float)sf::Mouse::getPosition(_window).y
     });
 
+    bool closeEnough = (CalcDistSquared(_player.GetPosition(), _enemy.GetPosition())
+        <= ENEMY_REACH_PLAYER_DIST * ENEMY_REACH_PLAYER_DIST);
+
     // If enemy is not close enough to player, it moves towards player
-    if (CalcDistSquared(_player.GetPosition(), _enemy.GetPosition())
-        > ENEMY_REACH_PLAYER_DIST * ENEMY_REACH_PLAYER_DIST)
+    if (!closeEnough)
     {
         _enemy.MoveTowards(_player.GetPosition(), Enemy::SPEED);
     }
@@ -98,6 +100,7 @@ void Game::Update()
     else if (_enemyHitTimer == 0)
     {
         _enemy.Hit(_player.GetPosition());
+        _player.GetHit();
         _enemyHitTimer = ENEMY_HIT_FREQ;
     }
 
@@ -105,8 +108,11 @@ void Game::Update()
     {
         if (!_mouseLeftIsPressed)
         {
-            std::cout << "inside if" << std::endl;
             _player.Hit(_enemy.GetPosition());
+            if (closeEnough)
+            {
+                _enemy.GetHit();
+            }
             _mouseLeftIsPressed = true;
         }
     }
@@ -126,4 +132,7 @@ void Game::Draw()
 
     _enemy.DrawFist(_window);
     _player.DrawFist(_window);
+
+    _enemy.DrawHealthBar(_window);
+    _player.DrawHealthBar(_window);
 }

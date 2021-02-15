@@ -4,6 +4,7 @@
 
 #include "Player/Player.h"
 #include "Enemy/Enemy.h"
+#include "HealthBar/HealthBar.h"
 
 /**
  * A class for easily creating and running the Game.

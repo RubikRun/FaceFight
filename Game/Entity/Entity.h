@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "../HealthBar/HealthBar.h"
+
 #include <memory>
 #include <string>
 
@@ -21,6 +23,10 @@ class Entity
      *  name of the file where the texture is located
      * @param[in] fistTextureFile
      *  name of the file where the texture of the fist is located
+     * @param[in] healthBarPosition
+     *  position of the upper left corner of entity's health bar
+     * @param[in] healthBarSize
+     *  size (width and height) of entity's health bar
      * @param[in] scale
      *  the texture will be scaled with this scaler
      * @param[in] fistScale
@@ -31,6 +37,8 @@ class Entity
     Entity(
         std::string const& textureFile,
         std::string const& fistTextureFile,
+        sf::Vector2f const& healthBarPosition,
+        sf::Vector2f const& healthBarSize,
         sf::Vector2f const& scale = {1.f, 1.f},
         sf::Vector2f const& fistScale = {1.f, 1.f},
         sf::Vector2f const& position = {0, 0}
@@ -53,16 +61,28 @@ class Entity
     void DrawFist(sf::RenderTarget& target) const;
 
     /**
+     * Draws the health bar of the entity
+     */
+    void DrawHealthBar(sf::RenderTarget& target) const;
+
+    /**
      * Updates entity for next frame
      */
     void Update();
 
     /**
-     * Returns entity's health level
+     * Returns entity's health points
      * 
      * @return health
      */
     int GetHealth() const;
+
+    /**
+     * Returns a const reference to entit's health bar
+     * 
+     * @return entity's health bar
+     */
+    HealthBar const& GetHealthBar() const;
 
     /**
      * Returns entity's position
@@ -137,8 +157,8 @@ class Entity
 
   private:
 
-    /// Health of the entity
-    int _health;
+    /// Health bar of the entity
+    HealthBar _healthBar;
 
     /// Texture for the entity
     sf::Texture _tex;
@@ -157,6 +177,9 @@ class Entity
 
     /// Hit timer, indicating how many more frames are left of the current hit
     int _hitTimer;
+
+    /// Get hit timer, indicating frames left of the getting hit
+    int _getHitTimer;
 
     static int const HEALTH_INITIAL = 100;
 };

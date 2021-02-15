@@ -11,6 +11,9 @@ float const FIST_BODY_DIST = 100.f;
 /// Hit duration in frames
 int const HIT_DURATION = 10;
 
+/// Get hit duration in frames - the entity turns red for that much frames when they get hit
+int const GET_HIT_DURATION = 5;
+
 int const HIT_DAMAGE = 5;
 
 } // namespace
@@ -18,12 +21,15 @@ int const HIT_DAMAGE = 5;
 Entity::Entity(
     std::string const& textureFile,
     std::string const& fistTextureFile,
+    sf::Vector2f const& healthBarPosition,
+    sf::Vector2f const& healthBarSize,
     sf::Vector2f const& scale,
     sf::Vector2f const& fistScale,
     sf::Vector2f const& position)
     : _fistVisible(false),
+    _healthBar(healthBarPosition, healthBarSize),
     _hitTimer(0),
-    _health(HEALTH_INITIAL)
+    _getHitTimer(0)
 {
     if (!_tex.loadFromFile(textureFile))
     {
@@ -57,6 +63,11 @@ void Entity::DrawFist(sf::RenderTarget& target) const
     }
 }
 
+void Entity::DrawHealthBar(sf::RenderTarget& target) const
+{
+    _healthBar.Draw(target);
+}
+
 void Entity::Update()
 {
     if (_hitTimer > 0)
@@ -67,11 +78,24 @@ void Entity::Update()
             _fistVisible = false;
         }
     }
+    if (_getHitTimer > 0)
+    {
+        _getHitTimer--;
+        if (_getHitTimer == 0)
+        {
+            _sprite.setColor(sf::Color(255, 255, 255, 255));
+        }
+    }
 }
 
 int Entity::GetHealth() const
 {
-    return _health;
+    return _healthBar.GetHealth();
+}
+
+HealthBar const& Entity::GetHealthBar() const
+{
+    return _healthBar;
 }
 
 sf::Vector2f Entity::GetPosition() const
@@ -137,5 +161,7 @@ void Entity::Hit(sf::Vector2f const& otherPos)
 
 void Entity::GetHit()
 {
-    _health -= HIT_DAMAGE;
+    _healthBar.ChangeHealth(-HIT_DAMAGE);
+    _sprite.setColor(sf::Color(250, 0, 0));
+    _getHitTimer = GET_HIT_DURATION;
 }
