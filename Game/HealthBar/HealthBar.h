@@ -69,6 +69,13 @@ class HealthBar
      */
     void ChangeHealth(int delta);
 
+    /**
+     * Checks whether the health bar is empty
+     * 
+     * @return true if empty, false otherwise
+     */
+    bool IsEmpty() const;
+
   private: /* functions */
 
     /**

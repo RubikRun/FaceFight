@@ -14,7 +14,7 @@ sf::Keyboard::Key const KEY_QUIT_GAME = sf::Keyboard::Escape;
 
 /* Enemy is considered to have reached the player,
    if the distance between them is <= this constant. */
-float const ENEMY_REACH_PLAYER_DIST = 150.f;
+float const ENEMY_REACH_PLAYER_DIST = 350.f;
 
 float CalcDistSquared(sf::Vector2f const& a, sf::Vector2f const& b)
 {
@@ -42,7 +42,7 @@ Game::Game()
     // Hide the mouse cursor
     _window.setMouseCursorVisible(false);
 
-    _enemy.SetPosition({SCREEN_WIDTH - 400.f, 600.f});
+    _enemy.SetPosition({SCREEN_WIDTH, 600.f});
 }
 
 void Game::Run()
@@ -121,8 +121,13 @@ void Game::Update()
         _mouseLeftIsPressed = false;
     }
 
-    _player.Update();
-    _enemy.Update();
+    _player.Update(_enemy.GetPosition());
+    _enemy.Update(_player.GetPosition());
+
+    if (_player.IsDead() || _enemy.IsDead())
+    {
+        _window.close();
+    }
 }
 
 void Game::Draw()

@@ -6,10 +6,13 @@ namespace
 {
 
 /// Distance between the body (entity sprite) and the fist
-float const FIST_BODY_DIST = 100.f;
+float const FIST_BODY_DIST = 120.f;
 
-/// Hit duration in frames
+/// Hit duration in frames (has to be even)
 int const HIT_DURATION = 10;
+
+/// Speed by which the fist is moving when performing a hit
+float const HIT_SPEED = 12.f;
 
 /// Get hit duration in frames - the entity turns red for that much frames when they get hit
 int const GET_HIT_DURATION = 5;
@@ -23,11 +26,11 @@ Entity::Entity(
     std::string const& fistTextureFile,
     sf::Vector2f const& healthBarPosition,
     sf::Vector2f const& healthBarSize,
+    std::string const& hitSoundFile,
     sf::Vector2f const& scale,
     sf::Vector2f const& fistScale,
     sf::Vector2f const& position)
-    : _fistVisible(false),
-    _healthBar(healthBarPosition, healthBarSize),
+    : _healthBar(healthBarPosition, healthBarSize),
     _hitTimer(0),
     _getHitTimer(0)
 {
@@ -48,6 +51,12 @@ Entity::Entity(
     _fistSprite.setTexture(_fistTex);
 
     _fistSprite.setScale(fistScale);
+
+    if (!_hitSoundBuffer.loadFromFile(hitSoundFile))
+    {
+        throw "Error: Cannot load hitting sound from file: " + hitSoundFile;
+    }
+    _hitSound.setBuffer(_hitSoundBuffer);
 }
 
 void Entity::DrawEntity(sf::RenderTarget& target) const
@@ -57,10 +66,7 @@ void Entity::DrawEntity(sf::RenderTarget& target) const
 
 void Entity::DrawFist(sf::RenderTarget& target) const
 {
-    if (_fistVisible)
-    {
-        target.draw(_fistSprite);
-    }
+    target.draw(_fistSprite);
 }
 
 void Entity::DrawHealthBar(sf::RenderTarget& target) const
@@ -68,15 +74,26 @@ void Entity::DrawHealthBar(sf::RenderTarget& target) const
     _healthBar.Draw(target);
 }
 
-void Entity::Update()
+void Entity::Update(sf::Vector2f const& otherPos)
 {
     if (_hitTimer > 0)
     {
-        _hitTimer--;
-        if (_hitTimer == 0)
+        if (_hitTimer >= HIT_DURATION / 2)
         {
-            _fistVisible = false;
+            _fistSprite.move(_hitVelocity);
         }
+        else
+        {
+            _fistSprite.move(-_hitVelocity);
+        }
+        _hitTimer--;
+    }
+    else
+    {
+        sf::Vector2f delta = otherPos - GetPosition();
+        delta *= FIST_BODY_DIST / (float)sqrt(delta.x * delta.x + delta.y * delta.y);
+        _fistSprite.setPosition(GetPosition() + delta
+            - sf::Vector2f(_fistSprite.getGlobalBounds().width, _fistSprite.getGlobalBounds().height) / 2.f);
     }
     if (_getHitTimer > 0)
     {
@@ -136,15 +153,6 @@ float Entity::GetHeight() const
     return _sprite.getGlobalBounds().height;
 }
 
-void Entity::PointFistTowards(sf::Vector2f const& otherPos)
-{
-    sf::Vector2f delta = otherPos - GetPosition();
-    delta *= FIST_BODY_DIST / (float)sqrt(delta.x * delta.x + delta.y * delta.y);
-
-    _fistSprite.setPosition(GetPosition() + delta
-        - sf::Vector2f(_fistSprite.getGlobalBounds().width / 2, _fistSprite.getGlobalBounds().height / 2));
-}
-
 void Entity::Hit(sf::Vector2f const& otherPos)
 {
     // if we are currently hitting, skip
@@ -153,10 +161,12 @@ void Entity::Hit(sf::Vector2f const& otherPos)
         return;
     }
 
-    PointFistTowards(otherPos);
+    _hitVelocity = otherPos - GetPosition();
+    _hitVelocity *= HIT_SPEED / (float)sqrt(_hitVelocity.x * _hitVelocity.x + _hitVelocity.y * _hitVelocity.y);
 
-    _fistVisible = true;
     _hitTimer = HIT_DURATION;
+
+    _hitSound.play();
 }
 
 void Entity::GetHit()
@@ -164,4 +174,9 @@ void Entity::GetHit()
     _healthBar.ChangeHealth(-HIT_DAMAGE);
     _sprite.setColor(sf::Color(250, 0, 0));
     _getHitTimer = GET_HIT_DURATION;
+}
+
+bool Entity::IsDead() const
+{
+    return _healthBar.IsEmpty();
 }

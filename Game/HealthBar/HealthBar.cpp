@@ -73,3 +73,8 @@ void HealthBar::Update()
     _lostHealthRect.setSize({_outline.getSize().x * (1 - healthPercent), _outline.getSize().y});
     _lostHealthRect.setPosition({_healthRect.getPosition().x + _healthRect.getSize().x, _outline.getPosition().y});
 }
+
+bool HealthBar::IsEmpty() const
+{
+    return (_health == 0);
+}

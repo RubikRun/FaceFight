@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 #include "../HealthBar/HealthBar.h"
 
@@ -27,6 +28,8 @@ class Entity
      *  position of the upper left corner of entity's health bar
      * @param[in] healthBarSize
      *  size (width and height) of entity's health bar
+     * @param[in] hitSoundFile
+     *  name of the file where the sound of hitting is located
      * @param[in] scale
      *  the texture will be scaled with this scaler
      * @param[in] fistScale
@@ -39,6 +42,7 @@ class Entity
         std::string const& fistTextureFile,
         sf::Vector2f const& healthBarPosition,
         sf::Vector2f const& healthBarSize,
+        std::string const& hitSoundFile,
         sf::Vector2f const& scale = {1.f, 1.f},
         sf::Vector2f const& fistScale = {1.f, 1.f},
         sf::Vector2f const& position = {0, 0}
@@ -67,8 +71,11 @@ class Entity
 
     /**
      * Updates entity for next frame
+     * 
+     * @param[in] otherPosition
+     *  position of the other entity
      */
-    void Update();
+    void Update(sf::Vector2f const& otherPosition);
 
     /**
      * Returns entity's health points
@@ -135,14 +142,6 @@ class Entity
     float GetHeight() const;
 
     /**
-     * Rotates and translates the fist such that it points to the given position
-     * 
-     * @param[in] otherPosition
-     *  the position to which we want the fist to point
-     */
-    void PointFistTowards(sf::Vector2f const& otherPosition);
-
-    /**
      * Performs a hit towards the given position
      * 
      * @param[in] otherPosition
@@ -155,6 +154,13 @@ class Entity
      */
     void GetHit();
 
+    /**
+     * Checks whether the entity is dead (has 0 health)
+     * 
+     * @return true for dead, false otherwise
+     */
+    bool IsDead() const;
+
   private:
 
     /// Health bar of the entity
@@ -166,17 +172,23 @@ class Entity
     /// Sprite of the entity where it will be drawn
     sf::Sprite _sprite;
 
+    /// Sound buffer for the sound of hitting
+    sf::SoundBuffer _hitSoundBuffer;
+
+    /// Sound object for the sound of hitting
+    sf::Sound _hitSound;
+
     /// Texture for entity's fist
     sf::Texture _fistTex;
 
     /// Sprite of the entity's fist where it will be drawn
     sf::Sprite _fistSprite;
 
-    /// Keeps track of whether the fist is currently visible
-    bool _fistVisible;
-
     /// Hit timer, indicating how many more frames are left of the current hit
     int _hitTimer;
+
+    /// Velocity of the movement of the fist while hitting
+    sf::Vector2f _hitVelocity;
 
     /// Get hit timer, indicating frames left of the getting hit
     int _getHitTimer;
