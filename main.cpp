@@ -2,7 +2,7 @@
 
 int main()
 {
-    Game game;
+    FaceFight::Game game;
     game.Run();
 
     return 0;

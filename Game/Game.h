@@ -1,10 +1,15 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include "Resources/ResourceHandler.hpp"
+#include "Resources/ResourceIDs.hpp"
 
-#include "Player/Player.h"
-#include "Enemy/Enemy.h"
-#include "HealthBar/HealthBar.h"
+#include "Entities/Entity.h"
+
+#include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+
+namespace FaceFight
+{
 
 /**
  * A class for easily creating and running the Game.
@@ -29,7 +34,7 @@ class Game
      */
     ~Game();
 
-  private:
+  private: /* functions */
 
     /// Updates the game for the next frame.
     void Update();
@@ -37,20 +42,31 @@ class Game
     /// Draws the game to the window
     void Draw();
 
-  private:
+    /**
+     * Loads and opens all resources needed for the game,
+     * using the texture, sound and music handlers
+     */
+    void LoadOpenResources();
+
+  private: /* variables */
 
     /// The window where the game is rendered
     sf::RenderWindow _window;
 
-    /// Object representing the player entity
-    Player _player;
+    /// TODO: remove later
+    std::unique_ptr<Entity> _player;
 
-    /// Object representing the enemy entity
-    Enemy _enemy;
+    /// Resource handler object for handling texture resources
+    ::Resources::ResourceHandler<
+        Resources::Texture::Id, sf::Texture> _textureHandler;
 
-    /// Indicates whether the left mouse button is currently pressed
-    bool _mouseLeftIsPressed;
+    /// Resource handler object for handling sound buffer resources
+    ::Resources::ResourceHandler<
+        Resources::Sound::Id, sf::SoundBuffer> _soundHandler;
 
-    /// Timer for how many frames until the enemy can hit the player again
-    int _enemyHitTimer;
+    /// Resource handler object for handling music resources
+    ::Resources::ResourceHandler<
+        Resources::Music::Id, sf::Music, false> _musicHandler;
 };
+
+} // namespace FaceFight

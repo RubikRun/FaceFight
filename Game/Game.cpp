@@ -1,48 +1,41 @@
 #include "Game.h"
 
-#include <iostream>
-
 namespace
 {
-
-int const SCREEN_WIDTH = 1920;
-int const SCREEN_HEIGHT = 1080;
 
 int const FRAMERATE_LIMIT = 60;
 
 sf::Keyboard::Key const KEY_QUIT_GAME = sf::Keyboard::Escape;
 
-/* Enemy is considered to have reached the player,
-   if the distance between them is <= this constant. */
-float const ENEMY_REACH_PLAYER_DIST = 350.f;
-
-float CalcDistSquared(sf::Vector2f const& a, sf::Vector2f const& b)
-{
-    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
-}
-
-int const ENEMY_HIT_FREQ = 30;
+std::string const RESOURCES_DIR = "Game/Resources/";
 
 } // namespace
 
+namespace FaceFight
+{
+
+using namespace Resources;
+
 Game::Game()
     : _window( // Initialize window to be fullscreen
-        sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT),
-        "Face Fight",
-        sf::Style::Fullscreen),
-    _mouseLeftIsPressed(false),
-    _enemyHitTimer(0)
+        sf::VideoMode(
+            sf::VideoMode::getDesktopMode().width,
+            sf::VideoMode::getDesktopMode().height),
+        "",
+        sf::Style::Fullscreen)
 {
     // Set frame rate limit to not torture the GPU too much
     _window.setFramerateLimit(FRAMERATE_LIMIT);
 
-    // Enable vertical sync for some screens that get screen tearing
+    // Enable vertical sync for screens that get screen tearing
     _window.setVerticalSyncEnabled(true);
 
-    // Hide the mouse cursor
-    _window.setMouseCursorVisible(false);
+    LoadOpenResources();
 
-    _enemy.SetPosition({SCREEN_WIDTH, 600.f});
+    _player = std::make_unique<Entity>(
+        _textureHandler.Get(Texture::Id::Naruto),
+        _textureHandler.Get(Texture::Id::Fist)
+    );
 }
 
 void Game::Run()
@@ -77,67 +70,27 @@ Game::~Game()
 { /* nothing */ }
 
 void Game::Update()
-{
-    if (_enemyHitTimer > 0)
-    {
-        _enemyHitTimer--;
-    }
-
-    _player.SetPosition({
-        (float)sf::Mouse::getPosition(_window).x,
-        (float)sf::Mouse::getPosition(_window).y
-    });
-
-    bool closeEnough = (CalcDistSquared(_player.GetPosition(), _enemy.GetPosition())
-        <= ENEMY_REACH_PLAYER_DIST * ENEMY_REACH_PLAYER_DIST);
-
-    // If enemy is not close enough to player, it moves towards player
-    if (!closeEnough)
-    {
-        _enemy.MoveTowards(_player.GetPosition(), Enemy::SPEED);
-    }
-    // otherwise enemy will be close enough and it will be hitting player
-    else if (_enemyHitTimer == 0)
-    {
-        _enemy.Hit(_player.GetPosition());
-        _player.GetHit();
-        _enemyHitTimer = ENEMY_HIT_FREQ;
-    }
-
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-    {
-        if (!_mouseLeftIsPressed)
-        {
-            _player.Hit(_enemy.GetPosition());
-            if (closeEnough)
-            {
-                _enemy.GetHit();
-            }
-            _mouseLeftIsPressed = true;
-        }
-    }
-    else
-    {
-        _mouseLeftIsPressed = false;
-    }
-
-    _player.Update(_enemy.GetPosition());
-    _enemy.Update(_player.GetPosition());
-
-    if (_player.IsDead() || _enemy.IsDead())
-    {
-        _window.close();
-    }
-}
+{ /* nothing */ }
 
 void Game::Draw()
 {
-    _enemy.DrawEntity(_window);
-    _player.DrawEntity(_window);
-
-    _enemy.DrawFist(_window);
-    _player.DrawFist(_window);
-
-    _enemy.DrawHealthBar(_window);
-    _player.DrawHealthBar(_window);
+    _player->Draw(_window);
 }
+
+void Game::LoadOpenResources()
+{
+    // TODO: Probably move file names to a file in Resources directory
+    
+    // Load textures with the texture handler
+    _textureHandler.Load(Texture::Id::Naruto, RESOURCES_DIR + "Textures/naruto.png");
+    _textureHandler.Load(Texture::Id::Sasuke, RESOURCES_DIR + "Textures/sasuke.png");
+    _textureHandler.Load(Texture::Id::Fist, RESOURCES_DIR + "Textures/fist.png");
+
+    // Load sound effects with the sound handler
+    _soundHandler.Load(Sound::Id::Punch, RESOURCES_DIR + "Sounds/punch.wav");
+
+    // Open music files with the music handler
+    _musicHandler.Open(Music::Id::NarutoTheme, RESOURCES_DIR + "Music/naruto-theme.wav");
+}
+
+} // namespace FaceFight
