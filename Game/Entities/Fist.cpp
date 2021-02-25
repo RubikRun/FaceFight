@@ -17,6 +17,11 @@ void Fist::Draw(
     renderTarget.draw(_fist);
 }
 
+void Fist::SetFistScale(sf::Vector2f const& scale)
+{
+    _fist.setScale(scale);
+}
+
 void Fist::FollowCenter()
 {
     _fist.setPosition({

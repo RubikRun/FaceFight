@@ -36,6 +36,17 @@ Game::Game()
         _textureHandler.Get(Texture::Id::Naruto),
         _textureHandler.Get(Texture::Id::Fist)
     );
+    _player->GetFist()->SetFistScale({0.3f, 0.3f});
+
+    _enemy = std::make_unique<Entity>(
+        _textureHandler.Get(Texture::Id::Sasuke),
+        _textureHandler.Get(Texture::Id::Fist),
+        sf::Vector2f(_window.getSize().x / 2, _window.getSize().y / 2)
+    );
+    _enemy->GetFist()->SetFistScale({0.3f, 0.3f});
+
+    _player->SetEnemy(&*_enemy);
+    _enemy->SetEnemy(&*_player);
 }
 
 void Game::Run()
@@ -70,11 +81,19 @@ Game::~Game()
 { /* nothing */ }
 
 void Game::Update()
-{ /* nothing */ }
+{
+    _player->SetPosition({
+        (float)sf::Mouse::getPosition().x,
+        (float)sf::Mouse::getPosition().y
+    });
+    _player->Update();
+    _enemy->Update();
+}
 
 void Game::Draw()
 {
     _player->Draw(_window);
+    _enemy->Draw(_window);
 }
 
 void Game::LoadOpenResources()

@@ -33,6 +33,16 @@ void Entity::Draw(
     _fist->Draw(renderTarget);
 }
 
+void Entity::Update()
+{
+    PointFistTowardsEnemy();
+}
+
+void Entity::SetFaceScale(sf::Vector2f const& scale)
+{
+    _face.setScale(scale);
+}
+
 void Entity::SetEnemy(
     Entity* const enemy)
 {
@@ -44,9 +54,9 @@ Entity const* Entity::GetEnemy() const
     return _enemy;
 }
 
-void Entity::Update()
+std::unique_ptr<Fist> const& Entity::GetFist()
 {
-    PointFistTowardsEnemy();
+    return _fist;
 }
 
 void Entity::FollowCenter()
@@ -59,6 +69,13 @@ void Entity::FollowCenter()
 
 void Entity::PointFistTowardsEnemy()
 {
+    // If there is no enemy, just point fist to the right
+    if (_enemy == nullptr)
+    {
+        _fist->SetPosition(this->GetPosition() + sf::Vector2f(ENTITY_FIST_DIST, 0.f));
+        return;
+    }
+
     // Get vector from this entity to the enemy entity
     sf::Vector2f enemyUnitVector = Geometry::GetVector(
         this->GetPosition(),

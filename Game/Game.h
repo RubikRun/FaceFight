@@ -55,6 +55,7 @@ class Game
 
     /// TODO: remove later
     std::unique_ptr<Entity> _player;
+    std::unique_ptr<Entity> _enemy;
 
     /// Resource handler object for handling texture resources
     ::Resources::ResourceHandler<

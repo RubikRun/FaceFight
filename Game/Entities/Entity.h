@@ -48,6 +48,19 @@ class Entity : public Movable
     void Draw(sf::RenderTarget& renderTarget) const;
 
     /**
+     * Updates the entity for the next frame
+     */
+    void Update();
+
+    /**
+     * Sets scale for the face sprite
+     * 
+     * @param[in] scale
+     *  The amount by which we want to scale the face in the x and y direction
+     */
+    void SetFaceScale(sf::Vector2f const& scale);
+
+    /**
      * Sets the given entity to be this entity's enemy
      * 
      * @param[in] enemy
@@ -63,9 +76,11 @@ class Entity : public Movable
     Entity const* GetEnemy() const;
 
     /**
-     * Updates the entity for the next frame
+     * Returns a reference to a unique pointer to the entity's fist
+     * 
+     * @return reference to pointer to entity's fist
      */
-    void Update();
+    std::unique_ptr<Fist> const& GetFist();
 
   private: /* functions */
 

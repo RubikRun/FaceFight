@@ -45,6 +45,14 @@ class Fist : public Movable
      */
     void Draw(sf::RenderTarget& renderTarget) const;
 
+    /**
+     * Sets scale for the fist sprite
+     * 
+     * @param[in] scale
+     *  The amount by which we want to scale the fist sprite in the x and y direction
+     */
+    void SetFistScale(sf::Vector2f const& scale);
+
   private: /* functions */
 
     /**
