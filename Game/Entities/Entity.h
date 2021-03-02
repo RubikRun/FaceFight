@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Animatable.hpp"
 #include "Movable.h"
-#include "Fist.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -18,7 +18,9 @@ namespace FaceFight
  * 
  * @sidenote: An entity's position is considered to be the center of their face
  */
-class Entity : public Movable
+class Entity :
+    public Movable,
+    public Animatable<float> // for punch animation - distance to fist will be animated
 {
 
   public:
@@ -40,12 +42,20 @@ class Entity : public Movable
     );
 
     /**
-     * Draws the entity on the given render target
+     * Draws the entity's face on the given render target
      * 
      * @param[in] renderTarget
-     *  Render target on which to draw the entity
+     *  Render target on which to draw the entity's face
      */
-    void Draw(sf::RenderTarget& renderTarget) const;
+    void DrawFace(sf::RenderTarget& renderTarget) const;
+
+    /**
+     * Draws the entity's fist on the given render target
+     * 
+     * @param[in] renderTarget
+     *  Render target on which to draw the entity's fist
+     */
+    void DrawFist(sf::RenderTarget& renderTarget) const;
 
     /**
      * Updates the entity for the next frame
@@ -61,6 +71,14 @@ class Entity : public Movable
     void SetFaceScale(sf::Vector2f const& scale);
 
     /**
+     * Sets scale for the fist sprite
+     * 
+     * @param[in] scale
+     *  The amount by which we want to scale the fist in the x and y direction
+     */
+    void SetFistScale(sf::Vector2f const& scale);
+
+    /**
      * Sets the given entity to be this entity's enemy
      * 
      * @param[in] enemy
@@ -69,18 +87,10 @@ class Entity : public Movable
     void SetEnemy(Entity* const enemy);
 
     /**
-     * Returns a pointer to the enemy entity
-     * 
-     * @return pointer to enemy
+     * Punches the enemy using entity's fist.
+     * Plays the punching animation of the fist.
      */
-    Entity const* GetEnemy() const;
-
-    /**
-     * Returns a reference to a unique pointer to the entity's fist
-     * 
-     * @return reference to pointer to entity's fist
-     */
-    std::unique_ptr<Fist> const& GetFist();
+    void PunchEnemy();
 
   private: /* functions */
 
@@ -102,9 +112,14 @@ class Entity : public Movable
        and keeps track of the entity's position */
     sf::Sprite _face;
 
-    /* Entity's fist, as a unique pointer,
-       because the entity should be the only owner of their fist */
-    std::unique_ptr<Fist> _fist;
+    /* Fist of the entitiy,
+       as an SFML sprite, which points to a texture,
+       and keeps track of the entity's position */
+    sf::Sprite _fist;
+
+    /* Distance between the entity and its fist.
+       Technically between the centers of the face and the fist. */
+    float _fistDist;
 
     /// Pointer to the enemy entity
     Entity* _enemy;

@@ -1,14 +1,16 @@
 #include "Entity.h"
 
-#include "Fist.h"
-
 #include "../Geometry/Geometry.hpp"
 
 namespace
 {
 
-/// Distance between the entity and their fist (their centers)
-float const ENTITY_FIST_DIST = 100.f;
+/// Distance to fist by default
+float const FIST_DIST_DEFAULT = 100.f;
+/// Distance to fist that is reached when punching the enemy
+float const FIST_DIST_PUNCH = 150.f;
+
+size_t const PUNCH_ANIMATION_DURATION = 15;
 
 } // namespace
 
@@ -20,21 +22,50 @@ Entity::Entity(
     sf::Texture const& fistTexture,
     sf::Vector2f const& position)
     : _face(faceTexture),
-    _fist(std::make_unique<Fist>(fistTexture)),
+    _fist(fistTexture),
+    _fistDist(FIST_DIST_DEFAULT),
     _enemy(nullptr)
 {
     Movable::SetPosition(position);
+
+    // Describe punching animation
+    Animatable::AddAction(
+        "punch",
+        Animatable<float>::Action(
+            &_fistDist,
+            [](float* fistDist, float instance) {
+                if (instance < 0.5f)
+                {
+                    *fistDist = FIST_DIST_DEFAULT
+                        + 2 * instance * (FIST_DIST_PUNCH - FIST_DIST_DEFAULT);
+                }
+                else
+                {
+                    *fistDist = FIST_DIST_DEFAULT
+                        + 2 * (1 - instance) * (FIST_DIST_PUNCH - FIST_DIST_DEFAULT);
+                }
+            },
+            PUNCH_ANIMATION_DURATION
+        )
+    );
 }
 
-void Entity::Draw(
+void Entity::DrawFace(
     sf::RenderTarget& renderTarget) const
 {
     renderTarget.draw(_face);
-    _fist->Draw(renderTarget);
+    renderTarget.draw(_fist);
+}
+
+void Entity::DrawFist(
+    sf::RenderTarget& renderTarget) const
+{
+    renderTarget.draw(_fist);
 }
 
 void Entity::Update()
 {
+    Animatable<float>::UpdateAnimation();
     PointFistTowardsEnemy();
 }
 
@@ -43,20 +74,20 @@ void Entity::SetFaceScale(sf::Vector2f const& scale)
     _face.setScale(scale);
 }
 
+void Entity::SetFistScale(sf::Vector2f const& scale)
+{
+    _fist.setScale(scale);
+}
+
 void Entity::SetEnemy(
     Entity* const enemy)
 {
     _enemy = enemy;
 }
 
-Entity const* Entity::GetEnemy() const
+void Entity::PunchEnemy()
 {
-    return _enemy;
-}
-
-std::unique_ptr<Fist> const& Entity::GetFist()
-{
-    return _fist;
+    Animatable<float>::GetAction("punch").Play();
 }
 
 void Entity::FollowCenter()
@@ -72,7 +103,8 @@ void Entity::PointFistTowardsEnemy()
     // If there is no enemy, just point fist to the right
     if (_enemy == nullptr)
     {
-        _fist->SetPosition(this->GetPosition() + sf::Vector2f(ENTITY_FIST_DIST, 0.f));
+        _fist.setPosition(this->GetPosition() + sf::Vector2f(_fistDist, 0.f)
+            - sf::Vector2f(_fist.getGlobalBounds().width / 2.f, _fist.getGlobalBounds().height / 2.f));
         return;
     }
 
@@ -88,10 +120,11 @@ void Entity::PointFistTowardsEnemy()
        with the distance to the fist that we want,
        would result to a vector from this entity to where the fist is supposed to be,
        to be pointing towards the enemy and be such distance away from this entity */
-    sf::Vector2f fistVector = enemyUnitVector * ENTITY_FIST_DIST;
+    sf::Vector2f fistVector = enemyUnitVector * _fistDist;
 
     // What is left is to move the fist there
-    _fist->SetPosition(this->GetPosition() + fistVector);
+    _fist.setPosition(this->GetPosition() + fistVector
+        - sf::Vector2f(_fist.getGlobalBounds().width / 2.f, _fist.getGlobalBounds().height / 2.f));
 }
 
 } // namespace FaceFight
