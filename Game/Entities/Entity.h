@@ -20,7 +20,8 @@ namespace FaceFight
  */
 class Entity :
     public Movable,
-    public Animatable<float> // for punch animation - distance to fist will be animated
+    public Animatable<float>, // for punch animation - distance to fist will be animated
+    public Animatable<Entity> // for getting punched animation - the whole entity will be animated
 {
 
   public:
@@ -105,6 +106,13 @@ class Entity :
      */
     void PointFistTowardsEnemy();
 
+    /**
+     * Gets punched by the enemy.
+     * Plays the getting punched animation,
+     * and decreases health points
+     */
+    void GetPunched();
+
   private: /* variables */
 
     /* Face of the entitiy,
@@ -123,6 +131,9 @@ class Entity :
 
     /// Pointer to the enemy entity
     Entity* _enemy;
+
+    /// Health points of the enemy
+    float _health;
 };
 
 } // namespace FaceFight

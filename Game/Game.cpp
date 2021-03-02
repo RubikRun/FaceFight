@@ -22,7 +22,8 @@ Game::Game()
             sf::VideoMode::getDesktopMode().width,
             sf::VideoMode::getDesktopMode().height),
         "",
-        sf::Style::Fullscreen)
+        sf::Style::Fullscreen),
+    _mouseLeftIsPressed(false)
 {
     // Set frame rate limit to not torture the GPU too much
     _window.setFramerateLimit(FRAMERATE_LIMIT);
@@ -87,7 +88,13 @@ void Game::Update()
         (float)sf::Mouse::getPosition().y
     });
 
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    // button state in previous frame
+    bool mouseLeftWasPressed = _mouseLeftIsPressed;
+    // button state in current frame
+    _mouseLeftIsPressed = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+
+    // punch enemy only if button was not pressed previously but now is
+    if (_mouseLeftIsPressed && !mouseLeftWasPressed)
     {
         _player->PunchEnemy();
     }

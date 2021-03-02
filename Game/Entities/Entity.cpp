@@ -12,6 +12,10 @@ float const FIST_DIST_PUNCH = 150.f;
 
 size_t const PUNCH_ANIMATION_DURATION = 15;
 
+size_t const GET_PUNCHED_ANIMATION_DURATION = 10;
+
+float PUNCH_POWER = 10.f;
+
 } // namespace
 
 namespace FaceFight
@@ -29,7 +33,7 @@ Entity::Entity(
     Movable::SetPosition(position);
 
     // Describe punching animation
-    Animatable::AddAction(
+    Animatable<float>::AddAction(
         "punch",
         Animatable<float>::Action(
             &_fistDist,
@@ -46,6 +50,42 @@ Entity::Entity(
                 }
             },
             PUNCH_ANIMATION_DURATION
+        )
+    );
+
+    // Describe getting punched animation
+    Animatable<Entity>::AddAction(
+        "get-punched",
+        Animatable<Entity>::Action(
+            this,
+            [](Entity* entity, float instance) {
+                if (instance <= 0.0001f)
+                {
+                    entity->_face.setColor(sf::Color::Red);
+                }
+                if (instance >= 0.9999f)
+                {
+                    entity->_face.setColor(sf::Color::White);
+                }
+
+                // Unit vector from enemy to this entity
+                sf::Vector2f fromEnemyUnitVector = Geometry::NormaliseVector(
+                    Geometry::GetVector(
+                        entity->_enemy->GetPosition(),
+                        entity->GetPosition()
+                    )
+                );
+
+                if ((int)(instance * 20) % 2 == 0)
+                {
+                    entity->Move(fromEnemyUnitVector * PUNCH_POWER);
+                }
+                else
+                {
+                    entity->Move(-fromEnemyUnitVector * PUNCH_POWER);
+                }
+            },
+            GET_PUNCHED_ANIMATION_DURATION
         )
     );
 }
@@ -66,6 +106,7 @@ void Entity::DrawFist(
 void Entity::Update()
 {
     Animatable<float>::UpdateAnimation();
+    Animatable<Entity>::UpdateAnimation();
     PointFistTowardsEnemy();
 }
 
@@ -88,6 +129,7 @@ void Entity::SetEnemy(
 void Entity::PunchEnemy()
 {
     Animatable<float>::GetAction("punch").Play();
+    _enemy->GetPunched();
 }
 
 void Entity::FollowCenter()
@@ -125,6 +167,11 @@ void Entity::PointFistTowardsEnemy()
     // What is left is to move the fist there
     _fist.setPosition(this->GetPosition() + fistVector
         - sf::Vector2f(_fist.getGlobalBounds().width / 2.f, _fist.getGlobalBounds().height / 2.f));
+}
+
+void Entity::GetPunched()
+{
+    Animatable<Entity>::GetAction("get-punched").Play();
 }
 
 } // namespace FaceFight

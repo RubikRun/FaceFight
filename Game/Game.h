@@ -68,6 +68,9 @@ class Game
     /// Resource handler object for handling music resources
     ::Resources::ResourceHandler<
         Resources::Music::Id, sf::Music, false> _musicHandler;
+
+    /// Indicates whether the left mouse button is currently pressed
+    bool _mouseLeftIsPressed;
 };
 
 } // namespace FaceFight
