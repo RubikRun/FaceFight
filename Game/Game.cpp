@@ -80,6 +80,11 @@ Game::Game()
     _winnerText.setFont(_fontHandler.Get(Font::Id::Amatic));
     _winnerText.setCharacterSize(100);
     _winnerTextBackground.setFillColor(sf::Color(100, 100, 100, 200));
+
+    _player.SetPunchSoundBuffer(_soundHandler.Get(Sound::Id::Punch));
+    _enemy.SetPunchSoundBuffer(_soundHandler.Get(Sound::Id::Punch));
+
+    _musicHandler.Get(Music::Id::NarutoTheme).play();
 }
 
 void Game::Run()

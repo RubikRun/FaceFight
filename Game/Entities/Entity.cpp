@@ -14,7 +14,9 @@ size_t const PUNCH_ANIMATION_DURATION = 15;
 
 size_t const GET_PUNCHED_ANIMATION_DURATION = 10;
 
-float PUNCH_POWER = 10.f;
+float PUNCH_POWER = 5.f;
+
+int PUNCH_SOUND_VOLUME = 35;
 
 } // namespace
 
@@ -89,9 +91,16 @@ void Entity::SetEnemy(
     _enemy = enemy;
 }
 
+void Entity::SetPunchSoundBuffer(sf::SoundBuffer& punchSoundBuffer)
+{
+    _punchSound.setBuffer(punchSoundBuffer);
+    _punchSound.setVolume(PUNCH_SOUND_VOLUME);
+}
+
 void Entity::PunchEnemy(bool enemyCanGetPunched)
 {
     Animatable<float>::GetAction("punch").Play();
+    _punchSound.play();
     if (enemyCanGetPunched)
     {
         _enemy->GetPunched();

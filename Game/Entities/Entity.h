@@ -4,6 +4,7 @@
 #include "Movable.h"
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 namespace FaceFight
 {
@@ -109,6 +110,14 @@ class Entity :
     void SetEnemy(Entity* const enemy);
 
     /**
+     * Sets the punching sound of the entity
+     * 
+     * @param[in] punchSoundBuffer
+     *  Sound buffer of the sound to be played when the entity punches
+     */
+    void SetPunchSoundBuffer(sf::SoundBuffer& punchSoundBuffer);
+
+    /**
      * Punches the enemy using entity's fist.
      * Plays the punching animation of the fist.
      * If enemy is not close enough, they don't get punched
@@ -193,6 +202,9 @@ class Entity :
 
     /// Health points of the entity
     int _health;
+
+    /// Sound to be played when the entity is punching
+    sf::Sound _punchSound;
 };
 
 } // namespace FaceFight
