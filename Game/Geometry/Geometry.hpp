@@ -1,10 +1,13 @@
-/* Some geometry helper functions */
-
 #pragma once
+
+/* Some geometry helper functions */
 
 #include <SFML/Graphics.hpp>
 
 #include <cmath>
+
+namespace
+{
 
 namespace Geometry
 {
@@ -57,4 +60,22 @@ sf::Vector2f NormaliseVector(
     return v / GetVectorLength(v);
 }
 
+/**
+ * Calculates the distance between two given points
+ * 
+ * @return pointA
+ *  First point
+ * @return pointB
+ *  Second point
+ * 
+ * @return distance between the two points
+ */
+float CalcDist(
+    sf::Vector2f const& pointA,
+    sf::Vector2f const& pointB)
+{
+    return GetVectorLength(GetVector(pointA, pointB));
+}
 } // namespace Geometry
+
+} // namespace

@@ -4,6 +4,7 @@
 #include "Resources/ResourceIDs.hpp"
 
 #include "Entities/Entity.h"
+#include "Entities/HealthBar.h"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
@@ -53,9 +54,17 @@ class Game
     /// The window where the game is rendered
     sf::RenderWindow _window;
 
-    /// TODO: remove later
-    std::unique_ptr<Entity> _player;
-    std::unique_ptr<Entity> _enemy;
+    /// Player's entity
+    Entity _player;
+
+    /// Enemy's entity
+    Entity _enemy;
+
+    /// Health bar for player's health
+    HealthBar _playerHealthBar;
+
+    /// Health bar for enemy's health
+    HealthBar _enemyHealthBar;
 
     /// Resource handler object for handling texture resources
     ::Resources::ResourceHandler<
@@ -71,6 +80,9 @@ class Game
 
     /// Indicates whether the left mouse button is currently pressed
     bool _mouseLeftIsPressed;
+
+    /// Keeps track of the time (in frames) since the last time that enemy punched player
+    int _lastEnemyPunchTimer;
 };
 
 } // namespace FaceFight

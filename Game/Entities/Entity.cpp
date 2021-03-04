@@ -21,6 +21,14 @@ float PUNCH_POWER = 10.f;
 namespace FaceFight
 {
 
+Entity::Entity()
+    : _fistDist(FIST_DIST_DEFAULT),
+    _enemy(nullptr),
+    _health(MAX_HEALTH)
+{
+    InitAnimations();
+}
+
 Entity::Entity(
     sf::Texture const& faceTexture,
     sf::Texture const& fistTexture,
@@ -28,66 +36,11 @@ Entity::Entity(
     : _face(faceTexture),
     _fist(fistTexture),
     _fistDist(FIST_DIST_DEFAULT),
-    _enemy(nullptr)
+    _enemy(nullptr),
+    _health(MAX_HEALTH)
 {
     Movable::SetPosition(position);
-
-    // Describe punching animation
-    Animatable<float>::AddAction(
-        "punch",
-        Animatable<float>::Action(
-            &_fistDist,
-            [](float* fistDist, float instance) {
-                if (instance < 0.5f)
-                {
-                    *fistDist = FIST_DIST_DEFAULT
-                        + 2 * instance * (FIST_DIST_PUNCH - FIST_DIST_DEFAULT);
-                }
-                else
-                {
-                    *fistDist = FIST_DIST_DEFAULT
-                        + 2 * (1 - instance) * (FIST_DIST_PUNCH - FIST_DIST_DEFAULT);
-                }
-            },
-            PUNCH_ANIMATION_DURATION
-        )
-    );
-
-    // Describe getting punched animation
-    Animatable<Entity>::AddAction(
-        "get-punched",
-        Animatable<Entity>::Action(
-            this,
-            [](Entity* entity, float instance) {
-                if (instance <= 0.0001f)
-                {
-                    entity->_face.setColor(sf::Color::Red);
-                }
-                if (instance >= 0.9999f)
-                {
-                    entity->_face.setColor(sf::Color::White);
-                }
-
-                // Unit vector from enemy to this entity
-                sf::Vector2f fromEnemyUnitVector = Geometry::NormaliseVector(
-                    Geometry::GetVector(
-                        entity->_enemy->GetPosition(),
-                        entity->GetPosition()
-                    )
-                );
-
-                if ((int)(instance * 20) % 2 == 0)
-                {
-                    entity->Move(fromEnemyUnitVector * PUNCH_POWER);
-                }
-                else
-                {
-                    entity->Move(-fromEnemyUnitVector * PUNCH_POWER);
-                }
-            },
-            GET_PUNCHED_ANIMATION_DURATION
-        )
-    );
+    InitAnimations();
 }
 
 void Entity::DrawFace(
@@ -110,6 +63,16 @@ void Entity::Update()
     PointFistTowardsEnemy();
 }
 
+void Entity::SetFaceTexture(sf::Texture const& faceTexture)
+{
+    _face.setTexture(faceTexture);
+}
+
+void Entity::SetFistTexture(sf::Texture const& fistTexture)
+{
+    _fist.setTexture(fistTexture);
+}
+
 void Entity::SetFaceScale(sf::Vector2f const& scale)
 {
     _face.setScale(scale);
@@ -126,10 +89,23 @@ void Entity::SetEnemy(
     _enemy = enemy;
 }
 
-void Entity::PunchEnemy()
+void Entity::PunchEnemy(bool closeEnough)
 {
     Animatable<float>::GetAction("punch").Play();
-    _enemy->GetPunched();
+    if (closeEnough)
+    {
+        _enemy->GetPunched();
+    }
+}
+
+int const& Entity::GetHealth() const
+{
+    return _health;
+}
+
+bool Entity::IsAlive() const
+{
+    return (_health > 0);
 }
 
 void Entity::FollowCenter()
@@ -172,6 +148,77 @@ void Entity::PointFistTowardsEnemy()
 void Entity::GetPunched()
 {
     Animatable<Entity>::GetAction("get-punched").Play();
+    _health -= PUNCH_POWER;
+}
+
+void Entity::InitAnimations()
+{
+    // Add punching action to the animation
+    Animatable<float>::AddAction(
+        "punch",
+        ConstructPunchAction()
+    );
+
+    // Add getting punched action to the animation
+    Animatable<Entity>::AddAction(
+        "get-punched",
+        ConstructGetPunchedAction()
+    );
+}
+
+Animatable<float>::Action Entity::ConstructPunchAction()
+{
+    return {
+        &_fistDist,
+        [](float* fistDist, float instance) {
+            if (instance < 0.5f)
+            {
+                *fistDist = FIST_DIST_DEFAULT
+                    + 2 * instance * (FIST_DIST_PUNCH - FIST_DIST_DEFAULT);
+            }
+            else
+            {
+                *fistDist = FIST_DIST_DEFAULT
+                    + 2 * (1 - instance) * (FIST_DIST_PUNCH - FIST_DIST_DEFAULT);
+            }
+        },
+        PUNCH_ANIMATION_DURATION
+    };
+}
+
+Animatable<Entity>::Action Entity::ConstructGetPunchedAction()
+{
+    return {
+        this,
+        [](Entity* entity, float instance) {
+            if (instance <= 0.0001f)
+            {
+                entity->_face.setColor(sf::Color::Red);
+            }
+            if (instance >= 0.9999f)
+            {
+                entity->_face.setColor(sf::Color::White);
+            }
+
+            // Unit vector from enemy to this entity
+            sf::Vector2f fromEnemyUnitVector = Geometry::NormaliseVector(
+                Geometry::GetVector(
+                    entity->_enemy->GetPosition(),
+                    entity->GetPosition()
+                )
+            );
+
+            if ((int)(instance * 20) % 2 == 0)
+            {
+                entity->Move(fromEnemyUnitVector * PUNCH_POWER);
+            }
+            else
+            {
+                entity->Move(-fromEnemyUnitVector * PUNCH_POWER);
+            }
+        },
+        GET_PUNCHED_ANIMATION_DURATION
+    };
 }
 
 } // namespace FaceFight

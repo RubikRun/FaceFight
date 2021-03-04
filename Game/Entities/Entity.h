@@ -27,6 +27,11 @@ class Entity :
   public:
 
     /**
+     * Constructs a default entity with no textures
+     */
+    Entity();
+
+    /**
      * Creates an entity with the given texture
      * 
      * @param[in] faceTexture
@@ -64,6 +69,22 @@ class Entity :
     void Update();
 
     /**
+     * Sets a texture for entity's face
+     * 
+     * @param[in] faceTexture
+     *  Texture to set for face
+     */
+    void SetFaceTexture(sf::Texture const& faceTexture);
+
+    /**
+     * Sets a texture for entity's fist
+     * 
+     * @param[in] fistTexture
+     *  Texture to set for fist
+     */
+    void SetFistTexture(sf::Texture const& fistTexture);
+
+    /**
      * Sets scale for the face sprite
      * 
      * @param[in] scale
@@ -90,8 +111,26 @@ class Entity :
     /**
      * Punches the enemy using entity's fist.
      * Plays the punching animation of the fist.
+     * If enemy is not close enough, they don't get punched
+     * 
+     * @param[in] closeEnough
+     *  Specifies whether the enemy is close enough to be punched
      */
-    void PunchEnemy();
+    void PunchEnemy(bool closeEnough = true);
+
+    /**
+     * Returns a reference to entity's health points
+     */
+    int const& GetHealth() const;
+
+    /**
+     * Checks if the entity is alive
+     */
+    bool IsAlive() const;
+
+  public: /* variables */
+
+    static int const MAX_HEALTH = 100;
 
   private: /* functions */
 
@@ -113,6 +152,25 @@ class Entity :
      */
     void GetPunched();
 
+    /**
+     * Initializes entity's animations
+     */
+    void InitAnimations();
+
+    /**
+     * Constructs the punch action for the punch animation
+     * 
+     * @return punch action
+     */
+    Animatable<float>::Action ConstructPunchAction();
+
+    /**
+     * Constructs the get punched action for the get punched animation
+     * 
+     * @return get punched action
+     */
+    Animatable<Entity>::Action ConstructGetPunchedAction();
+
   private: /* variables */
 
     /* Face of the entitiy,
@@ -132,8 +190,8 @@ class Entity :
     /// Pointer to the enemy entity
     Entity* _enemy;
 
-    /// Health points of the enemy
-    float _health;
+    /// Health points of the entity
+    int _health;
 };
 
 } // namespace FaceFight
