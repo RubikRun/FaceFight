@@ -89,10 +89,10 @@ void Entity::SetEnemy(
     _enemy = enemy;
 }
 
-void Entity::PunchEnemy(bool closeEnough)
+void Entity::PunchEnemy(bool enemyCanGetPunched)
 {
     Animatable<float>::GetAction("punch").Play();
-    if (closeEnough)
+    if (enemyCanGetPunched)
     {
         _enemy->GetPunched();
     }
@@ -119,7 +119,7 @@ void Entity::FollowCenter()
 void Entity::PointFistTowardsEnemy()
 {
     // If there is no enemy, just point fist to the right
-    if (_enemy == nullptr)
+    if (_enemy == nullptr || !IsAlive())
     {
         _fist.setPosition(this->GetPosition() + sf::Vector2f(_fistDist, 0.f)
             - sf::Vector2f(_fist.getGlobalBounds().width / 2.f, _fist.getGlobalBounds().height / 2.f));

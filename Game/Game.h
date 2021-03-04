@@ -66,6 +66,12 @@ class Game
     /// Health bar for enemy's health
     HealthBar _enemyHealthBar;
 
+    /// Text that will be displayed when the fight is over to tell who is the winner
+    sf::Text _winnerText;
+
+    /// Rectnagle for the background of the winner text
+    sf::RectangleShape _winnerTextBackground;
+
     /// Resource handler object for handling texture resources
     ::Resources::ResourceHandler<
         Resources::Texture::Id, sf::Texture> _textureHandler;
@@ -77,6 +83,10 @@ class Game
     /// Resource handler object for handling music resources
     ::Resources::ResourceHandler<
         Resources::Music::Id, sf::Music, false> _musicHandler;
+
+    /// Resource handler object for handling font resources
+    ::Resources::ResourceHandler<
+        Resources::Font::Id, sf::Font> _fontHandler;
 
     /// Indicates whether the left mouse button is currently pressed
     bool _mouseLeftIsPressed;

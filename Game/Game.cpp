@@ -13,10 +13,12 @@ std::string const RESOURCES_DIR = "Game/Resources/";
 
 float const ENEMY_SPEED = 5.f;
 
-float const PUNCH_DIST = 300.f;
+float const PUNCH_DIST = 350.f;
 
 // Frequency of enemy punches, in frames
-int const ENEMY_PUNCH_FREQ = 2 * FRAMERATE_LIMIT;
+int const ENEMY_PUNCH_FREQ = FRAMERATE_LIMIT / 2;
+
+int const WINNER_TEXT_OFFSET = 20.f;
 
 } // namespace
 
@@ -74,6 +76,10 @@ Game::Game()
         (float)_window.getSize().x / 2, (float)_window.getSize().y / 2
     });
     _enemy.SetEnemy(&_player);
+
+    _winnerText.setFont(_fontHandler.Get(Font::Id::Amatic));
+    _winnerText.setCharacterSize(100);
+    _winnerTextBackground.setFillColor(sf::Color(100, 100, 100, 200));
 }
 
 void Game::Run()
@@ -111,45 +117,79 @@ void Game::Update()
 {
     _lastEnemyPunchTimer++;
 
+    /// Indicates whether player and enemy are close enough to punch each other
+    bool closeEnough = (Geometry::CalcDist(_player.GetPosition(), _enemy.GetPosition()) <= PUNCH_DIST);
+
     _player.SetPosition({
         (float)sf::Mouse::getPosition().x,
         (float)sf::Mouse::getPosition().y
     });
 
-    /// Indicates whether player and enemy are close enough to punch each other
-    bool closeEnough = (Geometry::CalcDist(_player.GetPosition(), _enemy.GetPosition()) <= PUNCH_DIST);
+    bool playerWasAlive = _player.IsAlive();
+    bool enemyWasAlive = _enemy.IsAlive();
 
-    // If enemy is not close enough to punch, it moves towards the player
-    if (!closeEnough)
+    if (_player.IsAlive())
     {
-        _enemy.Move(Geometry::NormaliseVector(Geometry::GetVector(
-            _enemy.GetPosition(),
-            _player.GetPosition()
-        )) * ENEMY_SPEED);
-    }
-    // Otherwise enemy punches, if enough time has passed since last punch
-    else if (_lastEnemyPunchTimer >= ENEMY_PUNCH_FREQ)
-    {
-        // Enemy punches player
-        _enemy.PunchEnemy();
+        // button state in previous frame
+        bool mouseLeftWasPressed = _mouseLeftIsPressed;
+        // button state in current frame
+        _mouseLeftIsPressed = sf::Mouse::isButtonPressed(sf::Mouse::Left);
 
-        _lastEnemyPunchTimer = 0;
+        // punch enemy only if button was not pressed previously but now is
+        if (_mouseLeftIsPressed && !mouseLeftWasPressed)
+        {
+            _player.PunchEnemy(closeEnough && _enemy.IsAlive());
+        }
     }
 
-    // button state in previous frame
-    bool mouseLeftWasPressed = _mouseLeftIsPressed;
-    // button state in current frame
-    _mouseLeftIsPressed = sf::Mouse::isButtonPressed(sf::Mouse::Left);
-
-    // punch enemy only if button was not pressed previously but now is
-    if (_mouseLeftIsPressed && !mouseLeftWasPressed)
+    if (_enemy.IsAlive() && _player.IsAlive())
     {
-        _player.PunchEnemy(closeEnough);
+        // If enemy is not close enough to punch, it moves towards the player
+        if (!closeEnough)
+        {
+            _enemy.Move(Geometry::NormaliseVector(Geometry::GetVector(
+                _enemy.GetPosition(),
+                _player.GetPosition()
+            )) * ENEMY_SPEED);
+        }
+        // Otherwise enemy punches, if enough time has passed since last punch
+        else if (_lastEnemyPunchTimer >= ENEMY_PUNCH_FREQ)
+        {
+            // Enemy punches player
+            _enemy.PunchEnemy();
+
+            _lastEnemyPunchTimer = 0;
+        }
+    }
+
+    // If player or enemy died, construct the winner text
+    if ((playerWasAlive && !_player.IsAlive())
+        || (enemyWasAlive && !_enemy.IsAlive()))
+    {
+        sf::String winnerString;
+        if (playerWasAlive && !_player.IsAlive())
+        {
+            winnerString = "Game over. You lost.";
+        }
+        else if (enemyWasAlive && !_enemy.IsAlive())
+        {
+            winnerString = "Congratulations! You win!";
+        }
+        _winnerText.setString(winnerString);
+        _winnerText.setPosition(sf::Vector2f(
+            (float)_window.getSize().x / 2 - _winnerText.getGlobalBounds().width / 2,
+            (float)_window.getSize().y / 2 - _winnerText.getGlobalBounds().height / 2
+        ));
+        _winnerTextBackground.setSize({
+            _winnerText.getGlobalBounds().width + WINNER_TEXT_OFFSET * 2,
+            _winnerText.getGlobalBounds().height + WINNER_TEXT_OFFSET * 2});
+        _winnerTextBackground.setPosition({
+            _winnerText.getGlobalBounds().left - WINNER_TEXT_OFFSET,
+            _winnerText.getGlobalBounds().top - WINNER_TEXT_OFFSET});
     }
 
     _player.Update();
     _enemy.Update();
-
     _playerHealthBar.Update();
     _enemyHealthBar.Update();
 }
@@ -163,6 +203,9 @@ void Game::Draw()
 
     _playerHealthBar.Draw(_window);
     _enemyHealthBar.Draw(_window);
+
+    _window.draw(_winnerTextBackground);
+    _window.draw(_winnerText);
 }
 
 void Game::LoadOpenResources()
@@ -177,6 +220,9 @@ void Game::LoadOpenResources()
 
     // Open music files with the music handler
     _musicHandler.Open(Music::Id::NarutoTheme, RESOURCES_DIR + "Music/naruto-theme.wav");
+
+    // Load font files with the font handler
+    _fontHandler.Load(Font::Id::Amatic, RESOURCES_DIR + "Fonts/raleway.ttf");
 }
 
 } // namespace FaceFight

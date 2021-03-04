@@ -23,6 +23,11 @@ namespace FaceFight
             enum class Id { NarutoTheme };
         }
 
+        namespace Font
+        {
+            enum class Id { Amatic, Raleway };
+        }
+
     } // namespace Resources
 
 } // namespace FaceFight

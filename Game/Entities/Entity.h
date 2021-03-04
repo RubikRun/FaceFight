@@ -113,10 +113,11 @@ class Entity :
      * Plays the punching animation of the fist.
      * If enemy is not close enough, they don't get punched
      * 
-     * @param[in] closeEnough
-     *  Specifies whether the enemy is close enough to be punched
+     * @param[in] enemyCanGetPunched
+     *  Specifies whether the enemy can be punched,
+     *  meaning that they are alive and close enough
      */
-    void PunchEnemy(bool closeEnough = true);
+    void PunchEnemy(bool enemyCanGetPunched = true);
 
     /**
      * Returns a reference to entity's health points
